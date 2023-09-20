@@ -1,35 +1,68 @@
 package main
 
 import (
-	"github.com/jinzhu/gorm"
-	_ "github.com/jinzhu/gorm/dialects/sqlite"
-	"./model"
+	"fmt"
+	"log"
+	"os"
+	"sort"
+
+	"example/models"
+
+	"gorm.io/driver/sqlite"
+	"gorm.io/gorm"
 )
 
-const DatabaseType = "sqlite3"
-const DatabasePath = "test.db"
+type DatabaseVersionMigrationFile struct {
+	MigrationFileName string
+	Version           uint
+}
 
-func main()  {
-	db, err := gorm.Open(DatabaseType, DatabasePath)
-	if err != nil {
-		panic("failed to connect database")
+func main() {
+
+	DatabaseVersions := []DatabaseVersionMigrationFile{
+		{MigrationFileName: "migrations/20230920162845.sql", Version: 20230920162845},
+		{MigrationFileName: "migrations/20230920171126.sql", Version: 20230920171126},
 	}
-	defer db.Close()
 
-	// Migrate the schema
-	db.AutoMigrate(&model.Product{})
+	// Just to make sure the versions get applied in the correct order.
+	sort.Slice(DatabaseVersions, func(i, j int) bool {
+		return DatabaseVersions[i].Version < DatabaseVersions[j].Version
+	})
 
-	// Create
-	db.Create(&model.Product{Code: "L1212", Price: 1000})
+	// Get a database connection.
+	db, err := gorm.Open(sqlite.Open("data.db"), &gorm.Config{})
+	if err != nil {
+		panic("failed to connect database create it.")
+	}
 
-	// Read
-	var product model.Product
-	db.First(&product, 1) // find product with id 1
-	db.First(&product, "code = ?", "L1212") // find product with code l1212
+	// Get the current database version
+	var dbversion models.DBVersion
+	if err := db.Last(&dbversion).Error; err != nil {
+		// If none assume version 0 -> initial migration
+		// db.AutoMigrate(&Product{}, &DBVersion{})
+		dbversion = models.DBVersion{Version: 0}
+	}
+	fmt.Println("Current Database-Version is:", dbversion.Version)
 
-	// Update - update product's price to 2000
-	db.Model(&product).Update("Price", 2000)
+	// Run versioned migrations until head
 
-	// Delete - delete product
-	db.Delete(&product)
+	fmt.Println("Database-Version is ", dbversion.Version)
+	for _, version := range DatabaseVersions {
+		fmt.Println("Database-Version is ", dbversion.Version, " < ", version.Version, " -> Do migration? ", dbversion.Version < version.Version)
+		if dbversion.Version < version.Version {
+			content, err := os.ReadFile(version.MigrationFileName)
+			if err != nil {
+				log.Fatal(err)
+			}
+			//fmt.Println(string(content))
+			db.Exec(string(content))
+			dbversion = models.DBVersion{Version: version.Version}
+			db.Create(&dbversion)
+			fmt.Println("Migrated to version: ", dbversion.Version)
+		}
+	}
+
+	// Finished migration
+	fmt.Println("Finished migrations")
+
 }
