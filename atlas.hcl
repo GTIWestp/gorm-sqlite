@@ -11,7 +11,7 @@ data "external_schema" "gorm" {
 
 env "gorm" {
   src = data.external_schema.gorm.url
-  dev = "sqlite://data.db"
+  dev = "sqlite://atlas.db"
   url = "sqlite://data.db"
   migration {
     dir = "file://migrations"

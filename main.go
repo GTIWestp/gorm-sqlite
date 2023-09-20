@@ -20,8 +20,10 @@ type DatabaseVersionMigrationFile struct {
 func main() {
 
 	DatabaseVersions := []DatabaseVersionMigrationFile{
-		{MigrationFileName: "migrations/20230920162845.sql", Version: 20230920162845},
-		{MigrationFileName: "migrations/20230920171126.sql", Version: 20230920171126},
+		{MigrationFileName: "migrations/20230920174315.sql", Version: 20230920174315},
+		{MigrationFileName: "migrations/20230920174516.sql", Version: 20230920174516},
+		{MigrationFileName: "migrations/20230920174604.sql", Version: 20230920174604},
+		{MigrationFileName: "migrations/20230920174735.sql", Version: 20230920174735},
 	}
 
 	// Just to make sure the versions get applied in the correct order.
