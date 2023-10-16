@@ -5,8 +5,9 @@ import "gorm.io/gorm"
 type User struct {
 	gorm.Model
 	Name     string
-	Lastname string
+	Lastname string `gorm:"default:null"`
 	Age      uint64
+	Test     string
 }
 
 type Session struct {

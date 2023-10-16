@@ -24,6 +24,8 @@ func main() {
 		{MigrationFileName: "migrations/20230920174516.sql", Version: 20230920174516},
 		{MigrationFileName: "migrations/20230920174604.sql", Version: 20230920174604},
 		{MigrationFileName: "migrations/20230920174735.sql", Version: 20230920174735},
+		{MigrationFileName: "migrations/20230926122021.sql", Version: 20230926122021},
+		{MigrationFileName: "migrations/20230926142733.sql", Version: 20230926142733},
 	}
 
 	// Just to make sure the versions get applied in the correct order.
@@ -63,6 +65,10 @@ func main() {
 			fmt.Println("Migrated to version: ", dbversion.Version)
 		}
 	}
+
+	db.Create(&models.User{Name: "John", Age: 42})
+
+	fmt.Println("Last added user: ", db.Last(&models.User{}))
 
 	// Finished migration
 	fmt.Println("Finished migrations")
